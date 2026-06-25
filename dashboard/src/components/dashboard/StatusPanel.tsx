@@ -72,7 +72,7 @@ export default function StatusPanel({
   const byId = new Map(summary.map((s) => [s.unitId, s]));
 
   return (
-    <div className="p-2.5 pt-4">
+    <div className="p-2.5 pt-6">
       <div className="mb-1.5 flex items-center gap-2 px-1 text-lg font-semibold text-carbon">
         <span className="inline-block h-3.5 w-3.5 rounded-full bg-electric" />
         현황판
