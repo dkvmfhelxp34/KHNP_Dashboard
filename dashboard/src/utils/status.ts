@@ -4,7 +4,7 @@ import type { UnitStatus, ForecastLevel } from "../types";
 export const LEVEL_COLOR: Record<ForecastLevel, string> = {
   여유: "#11A37F", // Secondary Green
   관심: "#2563EB", // Blue
-  주의: "#EAB308", // Yellow
+  주의: "#fbff00", // Yellow
   경보: "#F59E0B", // Warning Orange
   심각: "#E53935", // Alert Red
   없음: "#9CA3AF",
