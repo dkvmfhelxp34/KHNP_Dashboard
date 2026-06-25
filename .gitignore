@@ -1,0 +1,23 @@
+# 이 저장소(KHNP_Dashboard)는 홈페이지 코드인
+# dashboard(프론트엔드)와 dashboard_api(백엔드)만 추적한다.
+# scr/ 아래의 다른 모든 파일/폴더(데이터 수집·모델·스케줄러 등)는 무시한다.
+/*
+!/.gitignore
+!/README.md
+!/dashboard/
+!/dashboard_api/
+
+# --- dashboard (React/Vite 프론트엔드) ---
+/dashboard/node_modules/
+/dashboard/dist/
+/dashboard/.env
+/dashboard/*.local
+
+# --- dashboard_api (FastAPI 백엔드) ---
+__pycache__/
+*.pyc
+*.pyo
+
+# 비밀/자격증명 (실수 방지용 추가 차단)
+*.secret
+.env
