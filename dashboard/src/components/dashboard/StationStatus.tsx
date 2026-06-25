@@ -34,8 +34,8 @@ export default function StationStatus({ summary }: { summary: UnitSummary[] }) {
   return (
     <div className="p-2.5 pb-0">
       <div className="mb-1.5 flex items-center justify-between px-1">
-        <div className="flex items-center gap-2 text-base font-semibold text-carbon">
-          <span className="inline-block h-3 w-3 rounded-full bg-electric" />
+        <div className="flex items-center gap-2 text-lg font-semibold text-carbon">
+          <span className="inline-block h-3.5 w-3.5 rounded-full bg-electric" />
           관측소 현황
         </div>
         <span className="text-xs text-silver">총 {total}개소</span>
@@ -48,7 +48,7 @@ export default function StationStatus({ summary }: { summary: UnitSummary[] }) {
           style={{ borderColor: dangerColor, backgroundColor: LEVEL_TINT["심각"] }}
         >
           <div className="min-w-0">
-            <div className="text-xs font-semibold" style={{ color: dangerColor }}>최고 위험 · 심각</div>
+            <div className="text-sm font-semibold" style={{ color: dangerColor }}>최고 위험 · 심각</div>
             <div className="mt-0.5 truncate text-lg font-bold text-carbon">{worst.unitName}</div>
           </div>
           <div className="ml-2 shrink-0 text-right">
@@ -66,7 +66,7 @@ export default function StationStatus({ summary }: { summary: UnitSummary[] }) {
         >
           <span className="text-lg font-bold" style={{ color: "#11A37F" }}>✓</span>
           <div>
-            <div className="text-xs font-semibold" style={{ color: "#11A37F" }}>최고 위험 없음</div>
+            <div className="text-sm font-semibold" style={{ color: "#11A37F" }}>최고 위험 없음</div>
             <div className="text-sm font-medium text-graphite">현재 심각 단계 발전소 없음</div>
           </div>
         </div>
@@ -80,7 +80,7 @@ export default function StationStatus({ summary }: { summary: UnitSummary[] }) {
             className="flex items-center justify-between rounded-card px-3 py-1.5"
             style={{ backgroundColor: LEVEL_TINT[c.level] }}
           >
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-carbon">
+            <div className="flex items-center gap-1.5 text-sm font-semibold text-carbon">
               <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: LEVEL_COLOR[c.level] }} />
               {c.level}
             </div>

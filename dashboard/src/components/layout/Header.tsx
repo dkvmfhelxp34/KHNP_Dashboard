@@ -19,8 +19,8 @@ export default function Header() {
           className="h-7 w-auto brightness-0 invert"
           onError={(e) => ((e.currentTarget as HTMLImageElement).style.display = "none")}
         />
-        <span className="text-[18px] font-semibold tracking-[0.06em] text-white">
-          취수구 해수온도 예측 시스템
+        <span className="text-[17px] font-semibold tracking-[0.02em] text-white">
+          인공지능(AI) 기반 취수구 해수온도 예측 시스템
         </span>
       </div>
       <div className="flex items-center gap-1 text-sm">

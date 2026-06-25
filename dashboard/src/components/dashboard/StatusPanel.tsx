@@ -73,8 +73,8 @@ export default function StatusPanel({
 
   return (
     <div className="p-2.5 pt-1">
-      <div className="mb-1.5 flex items-center gap-2 px-1 text-base font-semibold text-carbon">
-        <span className="inline-block h-3 w-3 rounded-full bg-electric" />
+      <div className="mb-1.5 flex items-center gap-2 px-1 text-lg font-semibold text-carbon">
+        <span className="inline-block h-3.5 w-3.5 rounded-full bg-electric" />
         현황판
         <span className="ml-auto text-xs font-normal text-silver">호기별 실시간</span>
       </div>
@@ -89,11 +89,12 @@ export default function StatusPanel({
         ))}
       </div>
 
-      <div className="space-y-1.5">
+      {/* 본부별로 카드(헤더+테두리)로 구분 */}
+      <div className="space-y-2">
         {ORG.map((g) => (
-          <div key={g.hq}>
-            <div className="mb-0.5 px-1 text-sm font-medium text-pewter">{g.hq}본부</div>
-            <div className="grid grid-cols-6 gap-1">
+          <div key={g.hq} className="overflow-hidden rounded-card border border-cloud">
+            <div className="bg-sky px-2 py-1 text-sm font-semibold text-electric">{g.hq}본부</div>
+            <div className="grid grid-cols-6 gap-1 p-1.5">
               {g.units.map((u) => (
                 <UnitTile
                   key={u.name}

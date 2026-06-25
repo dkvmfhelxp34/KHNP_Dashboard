@@ -23,7 +23,7 @@ export default function AdminPage() {
       <Header />
       <div className="flex-1 overflow-y-auto p-8">
         <button onClick={() => navigate("/dashboard")} className="mb-4 text-sm text-electric hover:underline">
-          ← 지도로 돌아가기
+          ← 종합 현황으로 돌아가기
         </button>
         <h1 className="mb-1 text-xl font-medium text-carbon">사용자 관리</h1>
         <p className="mb-6 text-sm text-pewter">
