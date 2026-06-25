@@ -37,19 +37,20 @@ function OrgBlock({
       </button>
       {open && (
       <table className="w-full table-fixed border-collapse text-center text-sm [&_td]:whitespace-nowrap">
-        {/* 동일한 열 너비 고정 + 열별 흰색/회색 교차 배색 */}
+        {/* 모든 본부 블록이 동일한 열 너비를 갖도록 고정 */}
         <colgroup>
-          <col className="w-[18%] bg-white" />
-          <col className="w-[9%] bg-[#EFF2F6]" />
-          <col className="w-[12%] bg-white" />
-          <col className="w-[15%] bg-[#EFF2F6]" />
-          <col className="w-[15%] bg-white" />
-          <col className="w-[11%] bg-[#EFF2F6]" />
-          <col className="w-[10%] bg-white" />
-          <col className="w-[10%] bg-[#EFF2F6]" />
+          <col className="w-[18%]" />
+          <col className="w-[9%]" />
+          <col className="w-[12%]" />
+          <col className="w-[15%]" />
+          <col className="w-[15%]" />
+          <col className="w-[11%]" />
+          <col className="w-[10%]" />
+          <col className="w-[10%]" />
         </colgroup>
         <thead>
-          <tr className="text-graphite">
+          {/* 표 헤더행: 본부 헤더와 동일한 연파랑 + Primary Blue 볼드 */}
+          <tr className="bg-sky text-electric [&_th]:font-semibold">
             <th className="border-b border-cloud px-2 py-1.5 text-left font-medium">호기</th>
             <th className="border-b border-cloud px-2 py-1.5 font-medium">예보</th>
             <th className="border-b border-cloud px-2 py-1.5 font-medium">제한치</th>
@@ -61,18 +62,20 @@ function OrgBlock({
           </tr>
         </thead>
         <tbody>
-          {group.units.map((u) => {
+          {group.units.map((u, idx) => {
             const s = u.id ? byId.get(u.id) : undefined;
             const ok = s && s.status === "ok";
             const clickable = !!u.id;
             // 경보(4단계) 이상이면 해당 행을 살짝 하이라이트
             const alert = ok && (s!.level === "경보" || s!.level === "심각");
+            // 행별 흰색/연회색 줄무늬(옅게)
+            const zebra = idx % 2 === 1 ? "bg-[#FAFBFC]" : "bg-white";
             return (
               <tr
                 key={u.name}
-                className={`border-t border-cloud ${
-                  alert ? "bg-red-50 hover:bg-red-100" : clickable ? "hover:bg-ash" : ""
-                } ${clickable ? "cursor-pointer" : ""}`}
+                className={`border-t border-cloud ${clickable ? "cursor-pointer" : ""} ${
+                  alert ? "bg-red-50 hover:bg-red-100" : `${zebra} ${clickable ? "hover:bg-ash" : ""}`
+                }`}
                 onClick={clickable ? () => onSelectUnit(u.id!) : undefined}
               >
                 <td className="truncate px-2 py-1.5 text-left font-medium text-carbon">{u.name}</td>
