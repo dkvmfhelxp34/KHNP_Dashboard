@@ -368,6 +368,7 @@ def summary(_user: dict = Depends(require_auth)):
             "baseObserved": base_obs,   # 예측 입력의 마지막 관측(base_time 30분 격자) — '마지막 관측수온' 표시값
             "observedAt": observed_at,
             "p30": p30, "p60": p60,
+            "peak": round(peak, 3) if peak is not None else None,  # 예보 최고온도(6시간 예측 중 최댓값)
             "trend": trend,
             "rate": round(rate, 4) if rate is not None else None,
             "level": _forecast_level(peak, u["unitId"]),

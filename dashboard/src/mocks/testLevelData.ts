@@ -12,6 +12,7 @@ const mk = (
   unitId, unitName, siteId: "wolsong", status: "ok",
   currentValue, baseObserved: currentValue - 0.2,
   p30: currentValue + 0.3, p60: currentValue + 0.6,
+  peak: currentValue + 0.8,
   trend: "up", rate: 0.05, level, limit,
 });
 

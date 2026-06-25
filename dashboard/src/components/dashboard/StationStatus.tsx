@@ -51,13 +51,25 @@ export default function StationStatus({ summary }: { summary: UnitSummary[] }) {
           <div className="min-w-0">
             <div className="text-sm font-semibold" style={{ color: dangerColor }}>최고 위험 · 심각</div>
             <div className="mt-0.5 truncate text-lg font-bold text-carbon">{worst.unitName}</div>
+            <div className="text-xs text-silver">{ts}</div>
           </div>
-          <div className="ml-2 shrink-0 text-right">
-            <div className="text-2xl font-extrabold leading-none" style={{ color: dangerColor }}>
-              {worst.currentValue != null ? worst.currentValue.toFixed(1) : "-"}
-              <span className="ml-0.5 text-sm font-semibold">℃</span>
+          <div className="ml-2 shrink-0 space-y-0.5 text-right">
+            {/* 현재 수온 */}
+            <div>
+              <span className="mr-1 text-xs text-pewter">현재</span>
+              <span className="text-base font-bold text-carbon">
+                {worst.currentValue != null ? worst.currentValue.toFixed(1) : "-"}
+              </span>
+              <span className="text-xs font-semibold text-carbon">℃</span>
             </div>
-            <div className="mt-1 text-xs text-silver">{ts}</div>
+            {/* 예보수온(예보 최고온도) */}
+            <div>
+              <span className="mr-1 text-xs font-semibold" style={{ color: dangerColor }}>예보</span>
+              <span className="text-2xl font-extrabold leading-none" style={{ color: dangerColor }}>
+                {worst.peak != null ? worst.peak.toFixed(1) : "-"}
+              </span>
+              <span className="text-sm font-semibold" style={{ color: dangerColor }}>℃</span>
+            </div>
           </div>
         </div>
       ) : (

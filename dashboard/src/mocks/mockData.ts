@@ -61,6 +61,7 @@ export function mockSummary(): UnitSummary[] {
       unitId: d.unitId, unitName: d.unitName, siteId: "wolsong", status: "ok",
       currentValue: round(cur), baseObserved: round(cur - 0.1),
       p30: round(cur + 0.3), p60: round(cur + 0.5),
+      peak: round(cur + 0.6),
       trend: d.trend, rate: 0.02, level, limit: d.limit,
     };
   });

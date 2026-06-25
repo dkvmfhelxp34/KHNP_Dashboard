@@ -91,6 +91,7 @@ export interface UnitSummary {
   baseObserved: number | null;   // 예측 입력의 마지막 관측(base_time) — '마지막 관측수온' 표시값
   p30: number | null;
   p60: number | null;
+  peak: number | null;   // 예보 최고온도(6시간 예측 중 최댓값)
   trend: "up" | "down" | "flat";
   rate: number | null;   // 상승률 ℃/30분 평균(6시간 기준) — 그래프 상세와 동일 산식
   level: ForecastLevel;
