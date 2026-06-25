@@ -5,17 +5,18 @@ import type { ForecastLevel } from "../types";
 
 export type Cell = { name: string; id?: string; limit: number | null };
 
+// 월성본부를 맨 위에 둔다(실모델 운영 단지). 현황판·종합현황 모두 이 순서를 따른다.
 export const ORG: { hq: string; units: Cell[] }[] = [
+  { hq: "월성", units: [
+    { name: "월성2호기", id: "ws2", limit: null }, { name: "월성3호기", id: "ws3", limit: null },
+    { name: "월성4호기", id: "ws4", limit: null },
+    { name: "신월성1호기", id: "sws1", limit: 31.5 }, { name: "신월성2호기", id: "sws2", limit: 31.5 }] },
   { hq: "고리", units: [
     { name: "고리2호기", limit: 36.1 }, { name: "고리3호기", limit: 33.3 }, { name: "고리4호기", limit: 33.3 },
     { name: "신고리1호기", limit: 32.9 }, { name: "신고리2호기", limit: 32.9 }] },
   { hq: "새울", units: [
     { name: "새울1호기", limit: 34.9 }, { name: "새울2호기", limit: 34.9 },
     { name: "새울3호기", limit: 34.9 }, { name: "새울4호기", limit: 34.9 }] },
-  { hq: "월성", units: [
-    { name: "월성2호기", id: "ws2", limit: null }, { name: "월성3호기", id: "ws3", limit: null },
-    { name: "월성4호기", id: "ws4", limit: null },
-    { name: "신월성1호기", id: "sws1", limit: 31.5 }, { name: "신월성2호기", id: "sws2", limit: 31.5 }] },
   { hq: "한빛", units: [
     { name: "한빛1호기", limit: 36.0 }, { name: "한빛2호기", limit: 36.0 }, { name: "한빛3호기", limit: 35.5 },
     { name: "한빛4호기", limit: 35.5 }, { name: "한빛5호기", limit: 35.5 }, { name: "한빛6호기", limit: 35.5 }] },

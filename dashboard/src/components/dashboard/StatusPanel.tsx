@@ -2,7 +2,7 @@
 // 타일 클릭 → 시계열 팝업(onSelectUnit). 실모델 호기(id 보유)만 클릭 가능.
 import type { UnitSummary } from "../../types";
 import { LEVEL_COLOR } from "../../utils/status";
-import { ORG, type Cell } from "../../data/orgUnits";
+import { ORG, LEGEND, type Cell } from "../../data/orgUnits";
 
 // 호기 한 기를 나타내는 작은 원자로(냉각탑) 아이콘. 색 = 상태/단계색.
 function ReactorIcon({ color }: { color: string }) {
@@ -55,7 +55,7 @@ function UnitTile({
       } ${clickable ? "cursor-pointer" : "cursor-default"}`}
     >
       <ReactorIcon color={color} />
-      <span className="w-full truncate text-xs leading-tight text-carbon">{shortName(cell.name)}</span>
+      <span className="w-full truncate text-sm leading-tight text-carbon">{shortName(cell.name)}</span>
     </button>
   );
 }
@@ -72,17 +72,27 @@ export default function StatusPanel({
   const byId = new Map(summary.map((s) => [s.unitId, s]));
 
   return (
-    <div className="p-2.5">
-      <div className="mb-2 flex items-center gap-2 px-1 text-sm font-medium text-carbon">
-        <span className="inline-block h-2.5 w-2.5 rounded-full border-2 border-electric" />
+    <div className="p-3">
+      <div className="mb-2 flex items-center gap-2 px-1 text-base font-medium text-carbon">
+        <span className="inline-block h-3 w-3 rounded-full border-2 border-electric" />
         현황판
         <span className="ml-auto text-xs font-normal text-silver">호기별 실시간</span>
       </div>
 
-      <div className="space-y-2">
+      {/* 예보 단계 색상 범례 (1~5단계) */}
+      <div className="mb-3 flex flex-wrap gap-x-2.5 gap-y-1 px-1">
+        {LEGEND.map((l) => (
+          <span key={l.step} className="inline-flex items-center gap-1 text-xs text-graphite">
+            <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ backgroundColor: LEVEL_COLOR[l.level] }} />
+            {l.step}
+          </span>
+        ))}
+      </div>
+
+      <div className="space-y-2.5">
         {ORG.map((g) => (
           <div key={g.hq}>
-            <div className="mb-1 px-1 text-xs font-medium text-pewter">{g.hq}본부</div>
+            <div className="mb-1 px-1 text-sm font-medium text-pewter">{g.hq}본부</div>
             <div className="grid grid-cols-6 gap-1">
               {g.units.map((u) => (
                 <UnitTile

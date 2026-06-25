@@ -1,4 +1,5 @@
 // 우측 대형 '종합 현황' — 전 본부 호기를 세로로 크게. 실모델 호기 행 클릭 → 시계열 팝업.
+import { useState } from "react";
 import type { UnitSummary } from "../../types";
 import { LEVEL_COLOR } from "../../utils/status";
 import { ORG, LEGEND, fmt, fmtLimit } from "../../data/orgUnits";
@@ -9,19 +10,32 @@ function Trend({ trend }: { trend: "up" | "down" | "flat" }) {
   return <span className="text-carbon">■</span>;
 }
 
-// 본부 1개 블록(세로 스택). onSelectUnit 으로 호기 시계열 팝업 호출.
+// 본부 1개 블록(세로 스택). 헤더 클릭으로 접고 펼침. onSelectUnit 으로 호기 시계열 팝업 호출.
 function OrgBlock({
   group,
   byId,
+  open,
+  onToggle,
   onSelectUnit,
 }: {
   group: (typeof ORG)[number];
   byId: Map<string, UnitSummary>;
+  open: boolean;
+  onToggle: () => void;
   onSelectUnit: (id: string) => void;
 }) {
   return (
     <div className="overflow-hidden rounded-card border border-cloud">
-      <div className="bg-ash px-3 py-1.5 text-sm font-medium text-carbon">{group.hq}본부</div>
+      <button
+        type="button"
+        onClick={onToggle}
+        className="flex w-full items-center gap-2 bg-ash px-3 py-2 text-left text-sm font-medium text-carbon hover:bg-cloud/60"
+      >
+        <span className="text-pewter">{open ? "▾" : "▸"}</span>
+        {group.hq}본부
+        <span className="ml-auto text-xs font-normal text-silver">{group.units.length}호기</span>
+      </button>
+      {open && (
       <table className="w-full table-fixed border-collapse text-center text-sm [&_td]:whitespace-nowrap">
         {/* 모든 본부 블록이 동일한 열 너비를 갖도록 고정 */}
         <colgroup>
@@ -88,6 +102,7 @@ function OrgBlock({
           })}
         </tbody>
       </table>
+      )}
     </div>
   );
 }
@@ -100,6 +115,15 @@ export default function SummaryPanel({
   onSelectUnit: (id: string) => void;
 }) {
   const byId = new Map(summary.map((s) => [s.unitId, s]));
+  // 기본: 월성본부만 펼치고 나머지는 접음. 헤더 클릭으로 토글.
+  const [openHqs, setOpenHqs] = useState<Set<string>>(() => new Set(["월성"]));
+  const toggleHq = (hq: string) =>
+    setOpenHqs((prev) => {
+      const next = new Set(prev);
+      if (next.has(hq)) next.delete(hq);
+      else next.add(hq);
+      return next;
+    });
   const now = new Date();
   const nowText = `${now.getFullYear()}년 ${now.getMonth() + 1}월 ${now.getDate()}일 ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
 
@@ -129,7 +153,14 @@ export default function SummaryPanel({
       {/* 본부별 세로 스택 (크게) */}
       <div className="space-y-3">
         {ORG.map((g) => (
-          <OrgBlock key={g.hq} group={g} byId={byId} onSelectUnit={onSelectUnit} />
+          <OrgBlock
+            key={g.hq}
+            group={g}
+            byId={byId}
+            open={openHqs.has(g.hq)}
+            onToggle={() => toggleHq(g.hq)}
+            onSelectUnit={onSelectUnit}
+          />
         ))}
       </div>
     </div>

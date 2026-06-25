@@ -27,10 +27,10 @@ export default function DashboardPage() {
 
       {/* 작은 화면: 세로 스택(통째 스크롤) / lg 이상: 좌-우 2단(각자 스크롤) */}
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto lg:flex-row lg:overflow-hidden">
-        {/* 좌측 사이드바 — 스크롤 없이 전체가 보이도록 구성 */}
-        <aside className="flex shrink-0 flex-col border-b border-pale lg:w-[23rem] lg:border-b-0 lg:border-r-2 xl:w-[25rem]">
-          {/* 상단: 현황판(호기별 아이콘) — 자연 높이(스크롤 없음) */}
-          <div className="shrink-0">
+        {/* 좌측 사이드바 — 넓게, 스크롤 없이 전체가 보이도록 구성 */}
+        <aside className="flex shrink-0 flex-col border-b border-pale lg:w-[28rem] lg:border-b-0 lg:border-r-2 xl:w-[31rem]">
+          {/* 상단: 현황판(호기별 아이콘) — 남은 공간 차지, 스크롤 없음 */}
+          <div className="min-h-[18rem] flex-1 overflow-hidden lg:min-h-0">
             {summaryQ.isError && <ErrorMessage message="현황 데이터를 불러오지 못했습니다." />}
             <StatusPanel
               summary={summary}
@@ -38,8 +38,8 @@ export default function DashboardPage() {
               onSelectUnit={setPopupUnitId}
             />
           </div>
-          {/* 하단: 지도 — 남은 공간을 모두 채워 크게(최소 높이 보장) */}
-          <div className="min-h-[20rem] flex-1 border-t border-cloud">
+          {/* 하단: 지도 — 사이드바의 약 1/3 높이로 작게 */}
+          <div className="h-[32vh] shrink-0 border-t border-cloud">
             {sitesQ.data && <UnitMap sites={sitesQ.data} onSelect={() => {}} />}
           </div>
         </aside>
