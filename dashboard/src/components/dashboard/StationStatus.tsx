@@ -1,6 +1,7 @@
-// 좌측 사이드바 최상단 '관측소 현황'.
-// - 최고 위험 호기(가장 높은 단계)와 현재 수온 표시
-// - 단계별 개수(1단계 여유 제외: 심각/경보/주의/관심)
+// 좌측 사이드바 최상단 '관측소 예보 현황'.
+// 단계 분류는 모두 '예보(forecast) 단계'(UnitSummary.level, 제한치 대비) 기준.
+// - 최고 위험 호기(예보 심각 단계)와 현재 수온 표시
+// - 예보 단계별 개수(1단계 여유 제외: 심각/경보/주의/관심)
 import type { UnitSummary, ForecastLevel } from "../../types";
 import { LEVEL_COLOR } from "../../utils/status";
 
@@ -36,7 +37,7 @@ export default function StationStatus({ summary }: { summary: UnitSummary[] }) {
       <div className="mb-1.5 flex items-center justify-between px-1">
         <div className="flex items-center gap-2 text-lg font-semibold text-carbon">
           <span className="inline-block h-3.5 w-3.5 rounded-full bg-electric" />
-          관측소 현황
+          관측소 예보 현황
         </div>
         <span className="text-xs text-silver">총 {total}개소</span>
       </div>
