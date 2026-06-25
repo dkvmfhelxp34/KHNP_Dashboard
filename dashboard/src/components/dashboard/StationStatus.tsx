@@ -80,7 +80,7 @@ export default function StationStatus({ summary }: { summary: UnitSummary[] }) {
             className="flex items-center justify-between rounded-card px-3 py-1.5"
             style={{ backgroundColor: LEVEL_TINT[c.level] }}
           >
-            <div className="flex items-center gap-1.5 text-xs font-semibold" style={{ color: LEVEL_COLOR[c.level] }}>
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-carbon">
               <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: LEVEL_COLOR[c.level] }} />
               {c.level}
             </div>
