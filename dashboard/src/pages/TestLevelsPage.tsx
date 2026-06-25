@@ -1,6 +1,7 @@
 // 테스트 전용 페이지 (/test/levels): 임의 데이터로 예보 1~5단계를 모두 표출.
 // 실제 DB 연동 대시보드(/dashboard)는 건드리지 않는다. 로그인/백엔드 불필요.
 import { useState } from "react";
+import StationStatus from "../components/dashboard/StationStatus";
 import StatusPanel from "../components/dashboard/StatusPanel";
 import SummaryPanel from "../components/dashboard/SummaryPanel";
 import { testLevelSummary } from "../mocks/testLevelData";
@@ -21,6 +22,7 @@ export default function TestLevelsPage() {
         {/* 좌측: 현황판(아이콘 색 = 단계색) */}
         <aside className="flex shrink-0 flex-col border-b border-pale bg-white lg:w-[28rem] lg:border-b-0 lg:border-r-2 xl:w-[31rem]">
           <div className="min-h-[18rem] flex-1 overflow-hidden lg:min-h-0">
+            <StationStatus summary={testLevelSummary} />
             <StatusPanel summary={testLevelSummary} selectedUnitId={sel} onSelectUnit={setSel} />
           </div>
         </aside>

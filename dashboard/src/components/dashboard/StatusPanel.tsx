@@ -46,7 +46,7 @@ function UnitTile({
       disabled={!clickable}
       onClick={() => cell.id && onSelect(cell.id)}
       title={cell.id ? `${cell.name} · 클릭하면 시계열 보기` : `${cell.name} · 개발 예정`}
-      className={`flex flex-col items-center gap-0.5 rounded-tesla border px-0.5 py-1.5 text-center transition ${
+      className={`flex flex-col items-center gap-0.5 rounded-tesla border px-0.5 py-1 text-center transition ${
         selected
           ? "border-electric bg-sky"
           : clickable
@@ -72,15 +72,15 @@ export default function StatusPanel({
   const byId = new Map(summary.map((s) => [s.unitId, s]));
 
   return (
-    <div className="p-3">
-      <div className="mb-2 flex items-center gap-2 px-1 text-base font-semibold text-carbon">
+    <div className="p-2.5 pt-1">
+      <div className="mb-1.5 flex items-center gap-2 px-1 text-base font-semibold text-carbon">
         <span className="inline-block h-3 w-3 rounded-full bg-electric" />
         현황판
         <span className="ml-auto text-xs font-normal text-silver">호기별 실시간</span>
       </div>
 
       {/* 예보 단계 색상 범례 (1~5단계) */}
-      <div className="mb-3 flex flex-wrap gap-x-2.5 gap-y-1 px-1">
+      <div className="mb-2 flex flex-wrap gap-x-2.5 gap-y-1 px-1">
         {LEGEND.map((l) => (
           <span key={l.step} className="inline-flex items-center gap-1 text-xs text-graphite">
             <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ backgroundColor: LEVEL_COLOR[l.level] }} />
@@ -89,10 +89,10 @@ export default function StatusPanel({
         ))}
       </div>
 
-      <div className="space-y-2.5">
+      <div className="space-y-1.5">
         {ORG.map((g) => (
           <div key={g.hq}>
-            <div className="mb-1 px-1 text-sm font-medium text-pewter">{g.hq}본부</div>
+            <div className="mb-0.5 px-1 text-sm font-medium text-pewter">{g.hq}본부</div>
             <div className="grid grid-cols-6 gap-1">
               {g.units.map((u) => (
                 <UnitTile
