@@ -3,6 +3,7 @@ import { useState } from "react";
 import type { UnitSummary } from "../../types";
 import { LEVEL_COLOR } from "../../utils/status";
 import { ORG, LEGEND, fmt, fmtLimit } from "../../data/orgUnits";
+import SectionIcon from "./SectionIcon";
 
 function Trend({ trend }: { trend: "up" | "down" | "flat" }) {
   if (trend === "up") return <span className="text-red-600">▲</span>;
@@ -139,7 +140,7 @@ export default function SummaryPanel({
       {/* 헤더 + 현재시간 */}
       <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
         <div className="flex items-center gap-2 text-lg font-semibold text-carbon">
-          <span className="inline-block h-3.5 w-3.5 rounded-full bg-electric" />
+          <SectionIcon variant="summary" />
           종합 현황
         </div>
         <div className="text-xs text-pewter">현재 시간: {nowText}</div>

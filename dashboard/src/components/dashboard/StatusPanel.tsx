@@ -3,6 +3,7 @@
 import type { UnitSummary } from "../../types";
 import { LEVEL_COLOR } from "../../utils/status";
 import { ORG, LEGEND, type Cell } from "../../data/orgUnits";
+import SectionIcon from "./SectionIcon";
 
 // 호기 한 기를 나타내는 작은 원자로(냉각탑) 아이콘. 색 = 상태/단계색.
 function ReactorIcon({ color }: { color: string }) {
@@ -74,7 +75,7 @@ export default function StatusPanel({
   return (
     <div className="p-2.5 pt-6">
       <div className="mb-1.5 flex items-center gap-2 px-1 text-lg font-semibold text-carbon">
-        <span className="inline-block h-3.5 w-3.5 rounded-full bg-electric" />
+        <SectionIcon variant="panel" />
         현황판
         <span className="ml-auto text-xs font-normal text-silver">호기별 실시간</span>
       </div>

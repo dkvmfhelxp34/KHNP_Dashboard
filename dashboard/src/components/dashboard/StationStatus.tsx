@@ -4,6 +4,7 @@
 // - 예보 단계별 개수(1단계 여유 제외: 심각/경보/주의/관심)
 import type { UnitSummary, ForecastLevel } from "../../types";
 import { LEVEL_COLOR } from "../../utils/status";
+import SectionIcon from "./SectionIcon";
 
 // 단계색의 옅은 배경 틴트
 const LEVEL_TINT: Record<ForecastLevel, string> = {
@@ -36,7 +37,7 @@ export default function StationStatus({ summary }: { summary: UnitSummary[] }) {
     <div className="p-2.5 pb-0">
       <div className="mb-1.5 flex items-center justify-between px-1">
         <div className="flex items-center gap-2 text-lg font-semibold text-carbon">
-          <span className="inline-block h-3.5 w-3.5 rounded-full bg-electric" />
+          <SectionIcon variant="forecast" />
           관측소 예보 현황
         </div>
         <span className="text-xs text-silver">총 {total}개소</span>
