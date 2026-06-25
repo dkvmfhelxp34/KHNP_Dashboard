@@ -37,13 +37,8 @@ function UnitTile({
 }) {
   const ok = summary && summary.status === "ok";
   const clickable = !!cell.id;
-  // 색: 예보단계 있으면 단계색, 정상 데이터면 초록, 그 외(개발예정/데이터없음) 회색
-  const color =
-    ok && summary!.level !== "없음"
-      ? LEVEL_COLOR[summary!.level]
-      : ok
-        ? "#16a34a"
-        : "#c8c9cb";
+  // 아이콘 색 = 예보(단계) 색과 일치. 데이터 없으면(개발예정/데이터없음) 옅은 회색.
+  const color = ok ? LEVEL_COLOR[summary!.level] : "#c8c9cb";
 
   return (
     <button
@@ -51,7 +46,7 @@ function UnitTile({
       disabled={!clickable}
       onClick={() => cell.id && onSelect(cell.id)}
       title={cell.id ? `${cell.name} · 클릭하면 시계열 보기` : `${cell.name} · 개발 예정`}
-      className={`flex flex-col items-center gap-1 rounded-tesla border px-1.5 py-2 text-center transition ${
+      className={`flex flex-col items-center gap-0.5 rounded-tesla border px-0.5 py-1.5 text-center transition ${
         selected
           ? "border-electric bg-electric/5"
           : clickable
@@ -61,11 +56,6 @@ function UnitTile({
     >
       <ReactorIcon color={color} />
       <span className="w-full truncate text-xs leading-tight text-carbon">{shortName(cell.name)}</span>
-      {ok ? (
-        <span className="text-xs font-medium text-graphite">{summary!.currentValue?.toFixed(1) ?? "-"}℃</span>
-      ) : (
-        <span className="text-xs text-silver">{cell.id ? "—" : "예정"}</span>
-      )}
     </button>
   );
 }
@@ -82,18 +72,18 @@ export default function StatusPanel({
   const byId = new Map(summary.map((s) => [s.unitId, s]));
 
   return (
-    <div className="p-3">
+    <div className="p-2.5">
       <div className="mb-2 flex items-center gap-2 px-1 text-sm font-medium text-carbon">
         <span className="inline-block h-2.5 w-2.5 rounded-full border-2 border-electric" />
         현황판
         <span className="ml-auto text-xs font-normal text-silver">호기별 실시간</span>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-2">
         {ORG.map((g) => (
           <div key={g.hq}>
             <div className="mb-1 px-1 text-xs font-medium text-pewter">{g.hq}본부</div>
-            <div className="grid grid-cols-3 gap-1.5">
+            <div className="grid grid-cols-6 gap-1">
               {g.units.map((u) => (
                 <UnitTile
                   key={u.name}

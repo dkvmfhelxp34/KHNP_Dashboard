@@ -22,7 +22,18 @@ function OrgBlock({
   return (
     <div className="overflow-hidden rounded-card border border-cloud">
       <div className="bg-ash px-3 py-1.5 text-sm font-medium text-carbon">{group.hq}본부</div>
-      <table className="w-full border-collapse text-center text-sm [&_td]:whitespace-nowrap">
+      <table className="w-full table-fixed border-collapse text-center text-sm [&_td]:whitespace-nowrap">
+        {/* 모든 본부 블록이 동일한 열 너비를 갖도록 고정 */}
+        <colgroup>
+          <col className="w-[18%]" />
+          <col className="w-[9%]" />
+          <col className="w-[12%]" />
+          <col className="w-[15%]" />
+          <col className="w-[15%]" />
+          <col className="w-[11%]" />
+          <col className="w-[10%]" />
+          <col className="w-[10%]" />
+        </colgroup>
         <thead>
           <tr className="bg-white text-pewter">
             <th className="border-b border-cloud px-2 py-1.5 text-left font-medium">호기</th>
@@ -46,7 +57,7 @@ function OrgBlock({
                 className={`border-t border-cloud ${clickable ? "cursor-pointer hover:bg-ash" : ""}`}
                 onClick={clickable ? () => onSelectUnit(u.id!) : undefined}
               >
-                <td className="px-2 py-1.5 text-left font-medium text-carbon">{u.name}</td>
+                <td className="truncate px-2 py-1.5 text-left font-medium text-carbon">{u.name}</td>
                 <td className="px-2 py-1.5">
                   {ok && s!.level !== "없음" ? (
                     <span
