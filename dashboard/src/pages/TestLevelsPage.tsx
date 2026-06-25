@@ -26,7 +26,7 @@ export default function TestLevelsPage() {
         </aside>
 
         {/* 우측: 종합 현황(경보·심각 행 하이라이트) */}
-        <main className="min-h-0 min-w-0 flex-1 overflow-y-auto p-4 lg:p-6">
+        <main className="min-h-0 min-w-0 flex-1 overflow-y-auto bg-white p-4 lg:p-6">
           <SummaryPanel summary={testLevelSummary} onSelectUnit={setSel} />
         </main>
       </div>

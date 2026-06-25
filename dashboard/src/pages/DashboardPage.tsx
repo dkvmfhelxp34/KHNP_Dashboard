@@ -57,7 +57,7 @@ export default function DashboardPage() {
         </aside>
 
         {/* 우측: 종합 현황(세로형 대형) */}
-        <main className="min-h-0 min-w-0 flex-1 overflow-y-auto p-4 lg:p-6">
+        <main className="min-h-0 min-w-0 flex-1 overflow-y-auto bg-white p-4 lg:p-6">
           {summaryQ.isError && <ErrorMessage message="종합 현황을 불러오지 못했습니다." />}
           <SummaryPanel summary={summary} onSelectUnit={setPopupUnitId} />
         </main>

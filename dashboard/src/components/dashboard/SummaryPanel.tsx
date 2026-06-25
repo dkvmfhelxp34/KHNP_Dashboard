@@ -29,27 +29,27 @@ function OrgBlock({
       <button
         type="button"
         onClick={onToggle}
-        className="flex w-full items-center gap-2 bg-electric px-3 py-2 text-left text-sm font-semibold text-white hover:bg-[#0a4f93]"
+        className="flex w-full items-center gap-2 bg-sky px-3 py-2 text-left text-sm font-semibold text-electric hover:bg-[#dbeafe]"
       >
-        <span className="text-white/80">{open ? "▾" : "▸"}</span>
+        <span className="text-electric/70">{open ? "▾" : "▸"}</span>
         {group.hq}본부
-        <span className="ml-auto text-xs font-normal text-white/80">{group.units.length}호기</span>
+        <span className="ml-auto text-xs font-normal text-electric/70">{group.units.length}호기</span>
       </button>
       {open && (
       <table className="w-full table-fixed border-collapse text-center text-sm [&_td]:whitespace-nowrap">
-        {/* 모든 본부 블록이 동일한 열 너비를 갖도록 고정 */}
+        {/* 동일한 열 너비 고정 + 열별 흰색/회색 교차 배색 */}
         <colgroup>
-          <col className="w-[18%]" />
-          <col className="w-[9%]" />
-          <col className="w-[12%]" />
-          <col className="w-[15%]" />
-          <col className="w-[15%]" />
-          <col className="w-[11%]" />
-          <col className="w-[10%]" />
-          <col className="w-[10%]" />
+          <col className="w-[18%] bg-white" />
+          <col className="w-[9%] bg-[#EFF2F6]" />
+          <col className="w-[12%] bg-white" />
+          <col className="w-[15%] bg-[#EFF2F6]" />
+          <col className="w-[15%] bg-white" />
+          <col className="w-[11%] bg-[#EFF2F6]" />
+          <col className="w-[10%] bg-white" />
+          <col className="w-[10%] bg-[#EFF2F6]" />
         </colgroup>
         <thead>
-          <tr className="bg-mist text-graphite">
+          <tr className="text-graphite">
             <th className="border-b border-cloud px-2 py-1.5 text-left font-medium">호기</th>
             <th className="border-b border-cloud px-2 py-1.5 font-medium">예보</th>
             <th className="border-b border-cloud px-2 py-1.5 font-medium">제한치</th>
