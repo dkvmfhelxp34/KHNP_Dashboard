@@ -26,11 +26,11 @@ export default {
       },
       fontFamily: {
         sans: [
-          "Inter",
+          "Pretendard",
+          "Pretendard Variable",
           "-apple-system",
           "Segoe UI",
           "Roboto",
-          "Pretendard",
           "sans-serif",
         ],
       },

@@ -1,6 +1,6 @@
 // MSW 핸들러: 실 API contract 와 동일한 경로/응답 (백엔드 없이 데모)
 import { http, HttpResponse } from "msw";
-import { mockSites, mockUnits, findUnit, mockPredictions, mockAlerts } from "./mockData";
+import { mockSites, mockUnits, findUnit, mockPredictions, mockAlerts, mockSummary, mockSources } from "./mockData";
 
 const API = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000/api";
 
@@ -16,6 +16,10 @@ export const handlers = [
       user: { id: "user-001", name: body.email.split("@")[0], role },
     });
   }),
+
+  http.get(`${API}/summary`, () => HttpResponse.json({ units: mockSummary() })),
+
+  http.get(`${API}/sources`, () => HttpResponse.json({ sources: mockSources() })),
 
   http.get(`${API}/sites`, () => HttpResponse.json({ sites: mockSites })),
 

@@ -1,5 +1,10 @@
 // 백엔드 없이 데모용 mock 데이터 (실 API 응답 형태와 동일)
-import type { Site, Unit, PredictionResponse, Alert } from "../types";
+import type {
+  Site, Unit, PredictionResponse, Alert,
+  UnitSummary, SourcesResponse, ForecastLevel,
+} from "../types";
+
+const round = (v: number) => Math.round(v * 100) / 100;
 
 export const mockSites: Site[] = [
   { siteId: "kori", siteName: "고리 원자력발전소", region: "부산광역시 기장군", latitude: 35.319904, longitude: 129.290053, status: "offline", unitCount: 0, predictionAvailable: false, lastUpdatedAt: new Date().toISOString() },
@@ -38,6 +43,36 @@ export function mockPredictions(unitId: string): PredictionResponse {
     };
   });
   return { status: "ok", unitId, baseTime: base.toISOString(), currentValue: Math.round(cur * 1000) / 1000, source: "mock", predictions };
+}
+
+// 종합현황/현황판용 요약 (월성단지 5호기만 실데이터, 나머지는 백엔드에서 미제공)
+export function mockSummary(): UnitSummary[] {
+  const defs: { unitId: string; unitName: string; limit: number | null; trend: "up" | "down" | "flat" }[] = [
+    { unitId: "ws2", unitName: "월성2호기", limit: null, trend: "up" },
+    { unitId: "ws3", unitName: "월성3호기", limit: null, trend: "flat" },
+    { unitId: "ws4", unitName: "월성4호기", limit: null, trend: "down" },
+    { unitId: "sws1", unitName: "신월성1호기", limit: 31.5, trend: "up" },
+    { unitId: "sws2", unitName: "신월성2호기", limit: 31.5, trend: "flat" },
+  ];
+  return defs.map((d) => {
+    const cur = baseTemp[d.unitId] ?? 18;
+    const level: ForecastLevel = d.limit == null ? "없음" : cur >= d.limit - 4 ? "관심" : "여유";
+    return {
+      unitId: d.unitId, unitName: d.unitName, siteId: "wolsong", status: "ok",
+      currentValue: round(cur), baseObserved: round(cur - 0.1),
+      p30: round(cur + 0.3), p60: round(cur + 0.5),
+      trend: d.trend, rate: 0.02, level, limit: d.limit,
+    };
+  });
+}
+
+export function mockSources(): SourcesResponse {
+  const now = new Date().toISOString();
+  return {
+    khnp: { connected: true, latest: now },
+    jma: { connected: true, latest: now },
+    hycom: { connected: true, latest: now },
+  };
 }
 
 export function mockAlerts(unitId: string): Alert[] {
