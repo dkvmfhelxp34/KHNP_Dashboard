@@ -9,9 +9,9 @@ export default function TestLevelsPage() {
   const [sel, setSel] = useState<string | null>(null);
 
   return (
-    <div className="flex h-full flex-col bg-white">
+    <div className="flex h-full flex-col bg-mist">
       {/* 테스트 페이지 표식 */}
-      <div className="flex flex-wrap items-center gap-2 border-b border-cloud bg-ash px-6 py-3 text-sm">
+      <div className="flex flex-wrap items-center gap-2 border-b border-cloud bg-white px-6 py-3 text-sm">
         <span className="rounded-tesla bg-electric px-2 py-0.5 text-xs font-medium text-white">TEST</span>
         <span className="font-medium text-carbon">예보 단계 표출 테스트 (1~5단계)</span>
         <span className="text-pewter">임의 데이터 · 실제 DB 대시보드(/dashboard)와 무관</span>
@@ -19,7 +19,7 @@ export default function TestLevelsPage() {
 
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto lg:flex-row lg:overflow-hidden">
         {/* 좌측: 현황판(아이콘 색 = 단계색) */}
-        <aside className="flex shrink-0 flex-col border-b border-pale lg:w-[28rem] lg:border-b-0 lg:border-r-2 xl:w-[31rem]">
+        <aside className="flex shrink-0 flex-col border-b border-pale bg-white lg:w-[28rem] lg:border-b-0 lg:border-r-2 xl:w-[31rem]">
           <div className="min-h-[18rem] flex-1 overflow-hidden lg:min-h-0">
             <StatusPanel summary={testLevelSummary} selectedUnitId={sel} onSelectUnit={setSel} />
           </div>

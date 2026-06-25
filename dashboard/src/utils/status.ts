@@ -1,21 +1,21 @@
 import type { UnitStatus, ForecastLevel } from "../types";
 
-// 예보 단계 색상 (1단계 여유 ~ 5단계 심각). 종합현황표·추세 색상 공통.
+// 예보 단계 색상 (1단계 여유 ~ 5단계 심각). 참고 이미지 팔레트 기준.
 export const LEVEL_COLOR: Record<ForecastLevel, string> = {
-  여유: "#16a34a",
-  관심: "#2563eb",
-  주의: "#fce300",
-  경보: "#f59e0b",
-  심각: "#dc2626",
-  없음: "#9ca3af",
+  여유: "#11A37F", // Secondary Green
+  관심: "#2563EB", // Blue
+  주의: "#EAB308", // Yellow
+  경보: "#F59E0B", // Warning Orange
+  심각: "#E53935", // Alert Red
+  없음: "#9CA3AF",
 };
 
 // 상태별 색상/라벨 (지도 마커·카드 공통)
 export const STATUS_COLOR: Record<UnitStatus, string> = {
-  normal: "#16a34a",
-  warning: "#eab308",
-  danger: "#dc2626",
-  offline: "#9ca3af",
+  normal: "#11A37F",
+  warning: "#F59E0B",
+  danger: "#E53935",
+  offline: "#9CA3AF",
 };
 
 export const STATUS_LABEL: Record<UnitStatus, string> = {

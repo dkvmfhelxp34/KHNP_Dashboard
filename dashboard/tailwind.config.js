@@ -5,15 +5,16 @@ export default {
   theme: {
     extend: {
       colors: {
-        // 운영 상태색만 의미색으로 유지(관제 대시보드 필수). 나머지는 무채색.
+        // 참고 이미지 디자인 팔레트
         status: {
-          normal: "#16a34a",
-          warning: "#eab308",
-          danger: "#dc2626",
+          normal: "#11A37F", // Secondary Green
+          warning: "#F59E0B", // Warning Orange
+          danger: "#E53935", // Alert Red
           offline: "#8E8E8E",
         },
-        // Tesla 팔레트
-        electric: "#3E6AE1", // 유일한 강조색(Primary CTA)
+        electric: "#0B5CAB", // Primary Blue (헤더/강조/CTA)
+        sky: "#EAF4FF", // Sky Blue (연한 강조 배경/선택)
+        mist: "#F7F8FA", // Light Gray (페이지 배경)
         carbon: "#171A20", // 제목/주요 텍스트
         graphite: "#393C41", // 본문
         pewter: "#5C5E62", // 보조 링크/캡션
@@ -21,8 +22,7 @@ export default {
         cloud: "#EEEEEE", // 경계선/디바이더
         pale: "#D0D1D2", // 보조 경계선
         ash: "#F4F4F4", // 대체 표면
-        // brand 를 electric 으로 통일(기존 클래스 호환)
-        brand: { DEFAULT: "#3E6AE1", light: "#5b82ea" },
+        brand: { DEFAULT: "#0B5CAB", light: "#2f7fd1" },
       },
       fontFamily: {
         sans: [

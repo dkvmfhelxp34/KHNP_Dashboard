@@ -48,7 +48,7 @@ function UnitTile({
       title={cell.id ? `${cell.name} · 클릭하면 시계열 보기` : `${cell.name} · 개발 예정`}
       className={`flex flex-col items-center gap-0.5 rounded-tesla border px-0.5 py-1.5 text-center transition ${
         selected
-          ? "border-electric bg-electric/5"
+          ? "border-electric bg-sky"
           : clickable
             ? "border-cloud hover:border-electric hover:bg-ash"
             : "border-cloud/60 opacity-55"
@@ -73,8 +73,8 @@ export default function StatusPanel({
 
   return (
     <div className="p-3">
-      <div className="mb-2 flex items-center gap-2 px-1 text-base font-medium text-carbon">
-        <span className="inline-block h-3 w-3 rounded-full border-2 border-electric" />
+      <div className="mb-2 flex items-center gap-2 px-1 text-base font-semibold text-carbon">
+        <span className="inline-block h-3 w-3 rounded-full bg-electric" />
         현황판
         <span className="ml-auto text-xs font-normal text-silver">호기별 실시간</span>
       </div>

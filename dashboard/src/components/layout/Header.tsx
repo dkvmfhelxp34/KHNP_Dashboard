@@ -7,33 +7,33 @@ export default function Header() {
   const navigate = useNavigate();
 
   return (
-    <header className="sticky top-0 z-[1000] flex h-14 items-center justify-between border-b border-cloud bg-white/75 px-6 backdrop-blur">
+    <header className="sticky top-0 z-[1000] flex h-14 items-center justify-between bg-electric px-6 text-white shadow-sm">
       <div
         className="flex cursor-pointer items-center gap-2.5"
         onClick={() => navigate("/dashboard")}
       >
-        {/* 한수원 로고: public/hansuwon_logo.png 에 파일을 두면 표시됨(없으면 숨김) */}
+        {/* 한수원 로고: public/hansuwon_logo.png. 파란 바 위라 흰색으로 반전 표시 */}
         <img
           src="/hansuwon_logo.png"
           alt="한국수력원자력"
-          className="h-7 w-auto"
+          className="h-7 w-auto brightness-0 invert"
           onError={(e) => ((e.currentTarget as HTMLImageElement).style.display = "none")}
         />
-        <span className="text-[18px] font-medium tracking-[0.12em] text-carbon">
+        <span className="text-[18px] font-semibold tracking-[0.06em] text-white">
           취수구 해수온도 예측 시스템
         </span>
       </div>
-      <div className="flex items-center gap-2 text-sm text-graphite">
+      <div className="flex items-center gap-1 text-sm">
         {user?.role === "admin" && (
           <button
-            className="rounded-tesla px-3 py-1.5 text-pewter hover:bg-ash hover:text-carbon"
+            className="rounded-tesla px-3 py-1.5 text-white/85 hover:bg-white/15 hover:text-white"
             onClick={() => navigate("/admin")}
           >
             사용자 관리
           </button>
         )}
         <button
-          className="rounded-tesla px-3 py-1.5 text-pewter hover:bg-ash hover:text-carbon"
+          className="rounded-tesla px-3 py-1.5 text-white/85 hover:bg-white/15 hover:text-white"
           onClick={() => { logout(); navigate("/login"); }}
         >
           로그아웃

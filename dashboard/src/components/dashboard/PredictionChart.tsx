@@ -64,9 +64,9 @@ export default function PredictionChart({ points }: { points: PredictionPoint[] 
         <Line
           type="monotone"
           dataKey="예측"
-          stroke="#16a34a"
+          stroke="#11A37F"
           strokeWidth={2}
-          dot={{ r: 3, fill: "#16a34a", strokeWidth: 0 }}
+          dot={{ r: 3, fill: "#11A37F", strokeWidth: 0 }}
           activeDot={{ r: 4 }}
           connectNulls
         />

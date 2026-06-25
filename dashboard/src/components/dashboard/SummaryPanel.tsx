@@ -29,11 +29,11 @@ function OrgBlock({
       <button
         type="button"
         onClick={onToggle}
-        className="flex w-full items-center gap-2 bg-ash px-3 py-2 text-left text-sm font-medium text-carbon hover:bg-cloud/60"
+        className="flex w-full items-center gap-2 bg-electric px-3 py-2 text-left text-sm font-semibold text-white hover:bg-[#0a4f93]"
       >
-        <span className="text-pewter">{open ? "▾" : "▸"}</span>
+        <span className="text-white/80">{open ? "▾" : "▸"}</span>
         {group.hq}본부
-        <span className="ml-auto text-xs font-normal text-silver">{group.units.length}호기</span>
+        <span className="ml-auto text-xs font-normal text-white/80">{group.units.length}호기</span>
       </button>
       {open && (
       <table className="w-full table-fixed border-collapse text-center text-sm [&_td]:whitespace-nowrap">
@@ -49,7 +49,7 @@ function OrgBlock({
           <col className="w-[10%]" />
         </colgroup>
         <thead>
-          <tr className="bg-white text-pewter">
+          <tr className="bg-mist text-graphite">
             <th className="border-b border-cloud px-2 py-1.5 text-left font-medium">호기</th>
             <th className="border-b border-cloud px-2 py-1.5 font-medium">예보</th>
             <th className="border-b border-cloud px-2 py-1.5 font-medium">제한치</th>
@@ -135,8 +135,8 @@ export default function SummaryPanel({
     <div>
       {/* 헤더 + 현재시간 */}
       <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
-        <div className="flex items-center gap-2 text-lg font-medium text-carbon">
-          <span className="inline-block h-3.5 w-3.5 rounded-full border-2 border-electric" />
+        <div className="flex items-center gap-2 text-lg font-semibold text-carbon">
+          <span className="inline-block h-3.5 w-3.5 rounded-full bg-electric" />
           종합 현황
         </div>
         <div className="text-xs text-pewter">현재 시간: {nowText}</div>
