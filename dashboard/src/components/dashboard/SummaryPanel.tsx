@@ -65,10 +65,14 @@ function OrgBlock({
             const s = u.id ? byId.get(u.id) : undefined;
             const ok = s && s.status === "ok";
             const clickable = !!u.id;
+            // 경보(4단계) 이상이면 해당 행을 살짝 하이라이트
+            const alert = ok && (s!.level === "경보" || s!.level === "심각");
             return (
               <tr
                 key={u.name}
-                className={`border-t border-cloud ${clickable ? "cursor-pointer hover:bg-ash" : ""}`}
+                className={`border-t border-cloud ${
+                  alert ? "bg-red-50 hover:bg-red-100" : clickable ? "hover:bg-ash" : ""
+                } ${clickable ? "cursor-pointer" : ""}`}
                 onClick={clickable ? () => onSelectUnit(u.id!) : undefined}
               >
                 <td className="truncate px-2 py-1.5 text-left font-medium text-carbon">{u.name}</td>

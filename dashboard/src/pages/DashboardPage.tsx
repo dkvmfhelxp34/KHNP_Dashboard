@@ -38,9 +38,21 @@ export default function DashboardPage() {
               onSelectUnit={setPopupUnitId}
             />
           </div>
-          {/* 하단: 지도 — 사이드바의 약 1/3 높이로 작게 */}
-          <div className="h-[32vh] shrink-0 border-t border-cloud">
-            {sitesQ.data && <UnitMap sites={sitesQ.data} onSelect={() => {}} />}
+          {/* 하단: 구분선 + 지도 제목 + 소형 지도 (사이드바의 약 1/3 높이) */}
+          <div className="shrink-0 border-t-2 border-pale">
+            <div className="flex items-center gap-1.5 border-b border-cloud bg-ash px-3 py-2 text-sm font-medium text-carbon">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  d="M12 21s7-5.686 7-11a7 7 0 10-14 0c0 5.314 7 11 7 11z"
+                  stroke="#3E6AE1" strokeWidth="2" strokeLinejoin="round"
+                />
+                <circle cx="12" cy="10" r="2.5" fill="#3E6AE1" />
+              </svg>
+              원자력발전소 위치
+            </div>
+            <div className="h-[32vh]">
+              {sitesQ.data && <UnitMap sites={sitesQ.data} onSelect={() => {}} />}
+            </div>
           </div>
         </aside>
 

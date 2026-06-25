@@ -8,6 +8,7 @@ import LoginPage from "./pages/LoginPage";
 import DashboardPage from "./pages/DashboardPage";
 import UnitDetailPage from "./pages/UnitDetailPage";
 import AdminPage from "./pages/AdminPage";
+import TestLevelsPage from "./pages/TestLevelsPage";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 
 const queryClient = new QueryClient({
@@ -40,6 +41,8 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
+  // 테스트 전용(임의 데이터, 로그인 불필요). 실제 DB 대시보드와 분리.
+  { path: "/test/levels", element: <TestLevelsPage /> },
   { path: "*", element: <Navigate to="/dashboard" replace /> },
 ]);
 
