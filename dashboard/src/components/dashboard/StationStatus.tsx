@@ -4,10 +4,6 @@
 import type { UnitSummary, ForecastLevel } from "../../types";
 import { LEVEL_COLOR } from "../../utils/status";
 
-// 심각 > 경보 > 주의 > 관심 > 여유 순(앞일수록 위험). 동률이면 현재수온 높은 순.
-const SEVERITY: ForecastLevel[] = ["심각", "경보", "주의", "관심", "여유", "없음"];
-const rank = (lv: ForecastLevel) => SEVERITY.indexOf(lv);
-
 // 단계색의 옅은 배경 틴트
 const LEVEL_TINT: Record<ForecastLevel, string> = {
   심각: "#FDECEA",
@@ -26,11 +22,11 @@ export default function StationStatus({ summary }: { summary: UnitSummary[] }) {
   const total = ok.length;
   const counts = COUNT_LEVELS.map((lv) => ({ level: lv, n: ok.filter((s) => s.level === lv).length }));
 
-  // 가장 위험한 호기
-  const worst = [...ok].sort(
-    (a, b) => rank(a.level) - rank(b.level) || (b.currentValue ?? -Infinity) - (a.currentValue ?? -Infinity),
-  )[0];
-  const worstColor = worst ? LEVEL_COLOR[worst.level] : "#9CA3AF";
+  // 최고 위험은 '심각(5단계)' 호기가 있을 때만. 여러 개면 현재수온 높은 순. 없으면 worst=undefined.
+  const worst = ok
+    .filter((s) => s.level === "심각")
+    .sort((a, b) => (b.currentValue ?? -Infinity) - (a.currentValue ?? -Infinity))[0];
+  const dangerColor = LEVEL_COLOR["심각"];
 
   const now = new Date();
   const ts = `${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
@@ -45,20 +41,18 @@ export default function StationStatus({ summary }: { summary: UnitSummary[] }) {
         <span className="text-xs text-silver">총 {total}개소</span>
       </div>
 
-      {/* 최고 위험 카드 */}
+      {/* 최고 위험 카드 — 심각(5단계) 호기가 있을 때만 표시, 없으면 '없음' */}
       {worst ? (
         <div
           className="mb-1.5 flex items-center justify-between rounded-card border-l-4 px-3 py-2"
-          style={{ borderColor: worstColor, backgroundColor: LEVEL_TINT[worst.level] }}
+          style={{ borderColor: dangerColor, backgroundColor: LEVEL_TINT["심각"] }}
         >
           <div className="min-w-0">
-            <div className="text-xs font-semibold" style={{ color: worstColor }}>
-              최고 위험 · {worst.level === "없음" ? "정상" : worst.level}
-            </div>
+            <div className="text-xs font-semibold" style={{ color: dangerColor }}>최고 위험 · 심각</div>
             <div className="mt-0.5 truncate text-lg font-bold text-carbon">{worst.unitName}</div>
           </div>
           <div className="ml-2 shrink-0 text-right">
-            <div className="text-2xl font-extrabold leading-none" style={{ color: worstColor }}>
+            <div className="text-2xl font-extrabold leading-none" style={{ color: dangerColor }}>
               {worst.currentValue != null ? worst.currentValue.toFixed(1) : "-"}
               <span className="ml-0.5 text-sm font-semibold">℃</span>
             </div>
@@ -66,8 +60,15 @@ export default function StationStatus({ summary }: { summary: UnitSummary[] }) {
           </div>
         </div>
       ) : (
-        <div className="mb-2 rounded-card border border-cloud bg-ash px-3 py-3 text-sm text-silver">
-          관측 데이터 없음
+        <div
+          className="mb-1.5 flex items-center gap-2 rounded-card border-l-4 px-3 py-2.5"
+          style={{ borderColor: "#11A37F", backgroundColor: "#E6F6F1" }}
+        >
+          <span className="text-lg font-bold" style={{ color: "#11A37F" }}>✓</span>
+          <div>
+            <div className="text-xs font-semibold" style={{ color: "#11A37F" }}>최고 위험 없음</div>
+            <div className="text-sm font-medium text-graphite">현재 심각 단계 발전소 없음</div>
+          </div>
         </div>
       )}
 
