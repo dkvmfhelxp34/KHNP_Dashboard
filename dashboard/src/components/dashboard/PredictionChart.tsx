@@ -21,8 +21,7 @@ export default function PredictionChart({ points }: { points: PredictionPoint[] 
     (p) => p.observedValue != null && p.predictedValue != null,
   )?.targetTime.slice(11, 16);
 
-  // Y축 도메인: 모든 값(실측/예측/이전예측) 기준, 최소 5°C 범위 + 여유
-  const MIN_SPAN = 5;
+  // Y축: 데이터 중심을 0.5℃ 단위로 맞추고 위·아래 1.5℃, 0.5℃ 간격 눈금(22.5·22.0…처럼 딱 떨어짐)
   const obs = points.map((p) => p.observedValue).filter((v): v is number => v != null);
   const all = points
     .flatMap((p) => [p.predictedValue, p.observedValue, p.priorPredictedValue])
@@ -30,18 +29,11 @@ export default function PredictionChart({ points }: { points: PredictionPoint[] 
   const center = obs.length
     ? (Math.min(...obs) + Math.max(...obs)) / 2
     : all.length ? (Math.min(...all) + Math.max(...all)) / 2 : 20;
-  const dataHalf = all.length ? (Math.max(...all) - Math.min(...all)) / 2 : 0;
-  const half = Math.max(MIN_SPAN / 2, dataHalf + 0.5);
-  const rawLo = center - half;
-  const rawHi = center + half;
-
-  // Y축 눈금: '나이스' 등간격(0.5 또는 정수 단위) → 도메인 끝을 눈금에 맞춰 간격 균일
-  const rawStep = (rawHi - rawLo) / 5;
-  const niceStep = rawStep <= 0.5 ? 0.5 : rawStep <= 1 ? 1 : Math.ceil(rawStep * 2) / 2;
-  const lo = Math.floor(rawLo / niceStep) * niceStep;
-  const hi = Math.ceil(rawHi / niceStep) * niceStep;
+  const c = Math.round(center * 2) / 2;   // 0.5 단위로 반올림 → 눈금이 딱 떨어짐
+  const lo = c - 1.5;
+  const hi = c + 1.5;
   const ticks: number[] = [];
-  for (let v = lo; v <= hi + 1e-9; v += niceStep) ticks.push(Math.round(v * 100) / 100);
+  for (let v = lo; v <= hi + 1e-9; v += 0.5) ticks.push(Math.round(v * 10) / 10);
 
   return (
     <ResponsiveContainer width="100%" height={300}>
