@@ -143,7 +143,9 @@ export default function SummaryPanel({
           <SectionIcon variant="summary" />
           종합 현황
         </div>
-        <div className="text-xs text-pewter">현재 시간: {nowText}</div>
+        <div className="rounded-tesla bg-sky px-2.5 py-1 text-base font-semibold text-electric">
+          현재 시간: {nowText}
+        </div>
       </div>
 
       {/* 단계 범례 */}

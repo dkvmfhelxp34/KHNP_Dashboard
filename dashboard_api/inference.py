@@ -47,7 +47,7 @@ STATS_DIR = HARNESS_DIR / "_workspace" / "p4_stats"
 TARGET_MODE = "delta"
 TRAIN_YEAR_START, TRAIN_YEAR_END = 2014, 2023   # fixed_valtest_range 의 train 구간(=2014~2023)
 INTERVAL_MIN = 30
-OBS_HISTORY = 24   # 차트에 보여줄 관측 history 길이(24*30분 = 12시간)
+OBS_HISTORY = 13   # 차트에 보여줄 관측 history 길이(13점 = base_time 포함 6시간; 미래도 6시간으로 대칭)
 _FOLDER_SUFFIX = "20260623_fixed_valtest_h48_20240701_20240831_20250701_20250825"
 
 # unitId → (site 한글명, 모델 폴더 prefix). type 코드 == unitId.
@@ -358,6 +358,28 @@ def _read_pred_from_db(unit_id: str) -> tuple[pd.Timestamp | None, list[dict]]:
     return base_time, preds
 
 
+def _prior_predictions(unit_id: str, start: pd.Timestamp, end: pd.Timestamp) -> dict:
+    """실측(과거) 구간 각 30분 시각에 대해 '그 시각 직전 최신 예측값'.
+    = pred 테이블에서 datetime=해당시각, base_time < datetime 중 base_time 최대(가장 최근에 그 시각을 예측한 값).
+    회색 '이전 예측' 선(예보 vs 실측 비교)용. 데이터 없으면 빈 dict."""
+    if db is None:
+        return {}
+    table = PRED_TABLE[unit_id]
+    try:
+        rows = db.fetch_all(
+            f"SELECT DISTINCT ON (datetime) datetime, temp FROM {table} "
+            f"WHERE type = %s AND datetime BETWEEN %s AND %s AND base_time < datetime "
+            f"ORDER BY datetime, base_time DESC",
+            (unit_id, start.to_pydatetime(), end.to_pydatetime()),
+        )
+    except Exception:
+        return {}
+    out = {}
+    for dt, temp in rows:
+        out[pd.Timestamp(dt)] = round(float(temp), 3) if temp is not None else None
+    return out
+
+
 def _intake_observed_30min(unit_id: str, base_time: pd.Timestamp, k: int) -> list[dict]:
     """취수구 관측 30분 격자 마지막 k개(<=base_time). 차트 '관측' 선."""
     start = base_time - pd.Timedelta(minutes=INTERVAL_MIN * (k - 1))
@@ -393,15 +415,21 @@ def latest_prediction(unit_id: str) -> dict:
         return {"status": "no_data", "unitId": unit_id, "reason": "취수구 관측 없음", "predictions": []}
     current_value = history[-1]["temp"]
 
+    # 실측 구간에 겹쳐 보여줄 '이전 예측'(그 시각 직전 최신 forecast) — 회색 비교선
+    prior = _prior_predictions(unit_id, history[0]["datetime"], base_time)
+
     points: list[dict] = []
     for h in history[:-1]:
         points.append({"targetTime": h["datetime"].isoformat(),
-                       "observedValue": h["temp"], "predictedValue": None})
+                       "observedValue": h["temp"], "predictedValue": None,
+                       "priorPredictedValue": prior.get(pd.Timestamp(h["datetime"]))})
     points.append({"targetTime": base_time.isoformat(),
-                   "observedValue": current_value, "predictedValue": current_value})
+                   "observedValue": current_value, "predictedValue": current_value,
+                   "priorPredictedValue": prior.get(pd.Timestamp(base_time))})
     for p in future:
         points.append({"targetTime": p["targetTime"],
-                       "observedValue": None, "predictedValue": p["temp"]})
+                       "observedValue": None, "predictedValue": p["temp"],
+                       "priorPredictedValue": None})
 
     # currentValue = DB 최신 수집 관측(상태카드 '현재 수온', 라이브).
     # baseObserved = 예측 입력의 마지막 관측(base_time 30분 격자값) — '마지막 관측수온'/추세 기준.

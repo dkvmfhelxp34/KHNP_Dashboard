@@ -33,16 +33,24 @@ export function findUnit(unitId: string): Unit | undefined {
 export function mockPredictions(unitId: string): PredictionResponse {
   const base = new Date();
   base.setSeconds(0, 0);
+  base.setMinutes(Math.floor(base.getMinutes() / 30) * 30); // 30분 격자
   const cur = (baseTemp[unitId] ?? 18) + (Math.random() - 0.5);
-  const predictions = Array.from({ length: 12 }, (_, i) => {
-    const tt = new Date(base.getTime() + (i + 1) * 30 * 60000);
-    return {
-      targetTime: tt.toISOString(),
-      predictedValue: Math.round((cur + 0.6 * Math.sin(i / 3) + (Math.random() - 0.5) * 0.3) * 1000) / 1000,
-      observedValue: null,
-    };
-  });
-  return { status: "ok", unitId, baseTime: base.toISOString(), currentValue: Math.round(cur * 1000) / 1000, source: "mock", predictions };
+  const points = [];
+  // 실측 6시간(과거 12점) + 이전예측(회색)
+  for (let i = 12; i >= 1; i--) {
+    const tt = new Date(base.getTime() - i * 30 * 60000);
+    const obs = round(cur - 0.4 * Math.sin(i / 3) + (Math.random() - 0.5) * 0.2);
+    const prior = round(obs + (Math.random() - 0.4) * 0.5);
+    points.push({ targetTime: tt.toISOString(), observedValue: obs, predictedValue: null, priorPredictedValue: prior });
+  }
+  // base_time 연결점(현재)
+  points.push({ targetTime: base.toISOString(), observedValue: round(cur), predictedValue: round(cur), priorPredictedValue: null });
+  // 예측 6시간(미래 12점)
+  for (let i = 1; i <= 12; i++) {
+    const tt = new Date(base.getTime() + i * 30 * 60000);
+    points.push({ targetTime: tt.toISOString(), observedValue: null, predictedValue: round(cur + 0.6 * Math.sin(i / 3) + (Math.random() - 0.5) * 0.3), priorPredictedValue: null });
+  }
+  return { status: "ok", unitId, baseTime: base.toISOString(), currentValue: round(cur), baseObserved: round(cur), source: "mock", predictions: points };
 }
 
 // 종합현황/현황판용 요약 (월성단지 5호기만 실데이터, 나머지는 백엔드에서 미제공)

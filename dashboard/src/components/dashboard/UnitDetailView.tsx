@@ -67,9 +67,17 @@ export default function UnitDetailView({ unitId }: { unitId: string }) {
   if (unitQ.isError) return <ErrorMessage message="호기 정보를 불러오지 못했습니다." />;
   if (!unitQ.data) return null;
 
+  const now = new Date();
+  const nowText = `${now.getFullYear()}년 ${now.getMonth() + 1}월 ${now.getDate()}일 ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+
   return (
     <>
-      <h1 className="mb-5 text-2xl font-medium text-carbon">{unitQ.data.unitName}</h1>
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
+        <h1 className="text-2xl font-medium text-carbon">{unitQ.data.unitName}</h1>
+        <div className="rounded-tesla bg-sky px-2.5 py-1 text-sm font-semibold text-electric">
+          현재 시간: {nowText}
+        </div>
+      </div>
 
       {pred?.status === "no_data" && (
         <div className="mb-5 rounded-card border border-cloud bg-ash p-4 text-sm text-graphite">
@@ -88,7 +96,9 @@ export default function UnitDetailView({ unitId }: { unitId: string }) {
 
       {/* 차트 */}
       <div className="mb-5 rounded-card border border-cloud bg-white p-5">
-        <h2 className="mb-3 text-[13px] font-medium text-graphite">관측 + 6시간 예측</h2>
+        <h2 className="mb-3 text-[13px] font-medium text-graphite">
+          실측 6시간 · 예측 6시간 <span className="font-normal text-silver">(회색 점선: 이전 예측)</span>
+        </h2>
         {predQ.isLoading && <Loading />}
         {pred?.status === "model_error" && <ErrorMessage message={pred.detail ?? "추론 오류"} />}
         {points.length === 0 ? <EmptyState /> : <PredictionChart points={points} />}
@@ -125,25 +135,40 @@ export default function UnitDetailView({ unitId }: { unitId: string }) {
         </table>
       </div>
 
-      {/* 관측 ↔ 예측 상세표 */}
+      {/* 관측 ↔ 예측 상세표 — 관측/예측을 박스로 구분 */}
       <div className="rounded-card border border-cloud bg-white p-5">
         <h2 className="mb-3 text-[13px] font-medium text-graphite">예측 상세표</h2>
-        <table className="w-full text-sm">
+        <table className="w-full table-fixed text-center text-sm">
+          <colgroup>
+            <col className="w-[34%]" />
+            <col className="w-[14%]" />
+            <col className="w-[4%]" />
+            <col className="w-[34%]" />
+            <col className="w-[14%]" />
+          </colgroup>
           <thead>
-            <tr className="text-left text-xs text-carbon">
-              <th className="py-1.5 font-normal">관측 일시</th>
-              <th className="font-normal">관측(℃)</th>
-              <th className="py-1.5 pl-3 font-normal">예측 일시</th>
-              <th className="font-normal">예측(℃)</th>
+            {/* 그룹 헤더(박스) */}
+            <tr>
+              <th colSpan={2} className="rounded-t-md bg-sky px-3 py-1.5 text-sm font-semibold text-electric">관측</th>
+              <th aria-hidden />
+              <th colSpan={2} className="rounded-t-md px-3 py-1.5 text-sm font-semibold" style={{ backgroundColor: "#E6F6F1", color: "#11A37F" }}>예측</th>
+            </tr>
+            <tr className="text-xs text-pewter">
+              <th className="bg-sky/40 px-3 py-1.5 font-normal">일시</th>
+              <th className="bg-sky/40 px-3 py-1.5 font-normal">수온(℃)</th>
+              <th aria-hidden />
+              <th className="px-3 py-1.5 font-normal" style={{ backgroundColor: "#EEFAF5" }}>일시</th>
+              <th className="px-3 py-1.5 font-normal" style={{ backgroundColor: "#EEFAF5" }}>수온(℃)</th>
             </tr>
           </thead>
           <tbody>
             {rows.map(({ obs, pred: p }) => (
-              <tr key={p.targetTime} className="border-t border-cloud text-carbon">
-                <td className="py-1.5">{obs ? obs.targetTime.slice(0, 16).replace("T", " ") : "-"}</td>
-                <td>{obs?.observedValue != null ? obs.observedValue.toFixed(2) : "-"}</td>
-                <td className="py-1.5 pl-3">{p.targetTime.slice(0, 16).replace("T", " ")}</td>
-                <td className={predCls(p.predictedValue)}>{p.predictedValue?.toFixed(2)}</td>
+              <tr key={p.targetTime} className="text-carbon">
+                <td className="border-t border-white bg-sky/40 px-3 py-1.5">{obs ? obs.targetTime.slice(5, 16).replace("T", " ") : "-"}</td>
+                <td className="border-t border-white bg-sky/40 px-3 py-1.5 font-medium">{obs?.observedValue != null ? obs.observedValue.toFixed(2) : "-"}</td>
+                <td aria-hidden />
+                <td className="border-t border-white px-3 py-1.5" style={{ backgroundColor: "#EEFAF5" }}>{p.targetTime.slice(5, 16).replace("T", " ")}</td>
+                <td className={`border-t border-white px-3 py-1.5 font-medium ${predCls(p.predictedValue)}`} style={{ backgroundColor: "#EEFAF5" }}>{p.predictedValue?.toFixed(2)}</td>
               </tr>
             ))}
           </tbody>

@@ -35,6 +35,7 @@ export interface PredictionPoint {
   targetTime: string;
   predictedValue: number | null;
   observedValue?: number | null;
+  priorPredictedValue?: number | null;  // 실측 구간 '이전 예측'(그 시각 직전 최신 forecast) — 회색 비교선
   lowerBound?: number | null;
   upperBound?: number | null;
   confidence?: number | null;
