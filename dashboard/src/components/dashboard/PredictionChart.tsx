@@ -3,8 +3,7 @@
 // - 이전예측선(회색 점선): 실측 구간에 '그 시각 직전 최신 예측'을 겹쳐 비교.
 // - 'base_time(현재)' 경계에 세로 기준선.
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  ReferenceLine, ResponsiveContainer,
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from "recharts";
 import type { PredictionPoint } from "../../types";
 
@@ -15,11 +14,6 @@ export default function PredictionChart({ points }: { points: PredictionPoint[] 
     예측: p.predictedValue ?? null,
     이전예측: p.priorPredictedValue ?? null,
   }));
-
-  // base_time(현재) 경계: 실측·예측이 모두 있는 연결점
-  const baseLabel = points.find(
-    (p) => p.observedValue != null && p.predictedValue != null,
-  )?.targetTime.slice(11, 16);
 
   // Y축: 데이터 중심을 0.5℃ 단위로 맞추고 위·아래 1.5℃, 0.5℃ 간격 눈금(22.5·22.0…처럼 딱 떨어짐)
   const obs = points.map((p) => p.observedValue).filter((v): v is number => v != null);
@@ -59,16 +53,6 @@ export default function PredictionChart({ points }: { points: PredictionPoint[] 
           }}
         />
         <Legend wrapperStyle={{ fontSize: 12, color: "#5C5E62" }} />
-
-        {/* base_time(현재) 경계선 — 좌측 실측 6시간 / 우측 예측 6시간 */}
-        {baseLabel && (
-          <ReferenceLine
-            x={baseLabel}
-            stroke="#0B5CAB"
-            strokeDasharray="4 3"
-            label={{ value: "현재", position: "top", fill: "#0B5CAB", fontSize: 11 }}
-          />
-        )}
 
         {/* 이전 예측(회색 점선) — 실측 구간 비교용 */}
         <Line

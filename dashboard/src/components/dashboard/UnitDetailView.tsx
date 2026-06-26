@@ -96,9 +96,7 @@ export default function UnitDetailView({ unitId }: { unitId: string }) {
 
       {/* 차트 */}
       <div className="mb-5 rounded-card border border-cloud bg-white p-5">
-        <h2 className="mb-3 text-[13px] font-medium text-graphite">
-          실측 6시간 · 예측 6시간 <span className="font-normal text-silver">(회색 점선: 이전 예측)</span>
-        </h2>
+        <h2 className="mb-3 text-[13px] font-medium text-graphite">실측 6시간 · 예측 6시간</h2>
         {predQ.isLoading && <Loading />}
         {pred?.status === "model_error" && <ErrorMessage message={pred.detail ?? "추론 오류"} />}
         {points.length === 0 ? <EmptyState /> : <PredictionChart points={points} />}
@@ -149,13 +147,13 @@ export default function UnitDetailView({ unitId }: { unitId: string }) {
           <thead>
             {/* 그룹 헤더(박스) */}
             <tr>
-              <th colSpan={2} className="rounded-t-md bg-sky px-3 py-1.5 text-sm font-semibold text-electric">관측</th>
+              <th colSpan={2} className="rounded-t-md bg-ash px-3 py-1.5 text-sm font-semibold text-graphite">관측</th>
               <th aria-hidden />
               <th colSpan={2} className="rounded-t-md px-3 py-1.5 text-sm font-semibold" style={{ backgroundColor: "#E6F6F1", color: "#11A37F" }}>예측</th>
             </tr>
             <tr className="text-xs text-pewter">
-              <th className="bg-sky/40 px-3 py-1.5 font-normal">일시</th>
-              <th className="bg-sky/40 px-3 py-1.5 font-normal">수온(℃)</th>
+              <th className="bg-mist px-3 py-1.5 font-normal">일시</th>
+              <th className="bg-mist px-3 py-1.5 font-normal">수온(℃)</th>
               <th aria-hidden />
               <th className="px-3 py-1.5 font-normal" style={{ backgroundColor: "#EEFAF5" }}>일시</th>
               <th className="px-3 py-1.5 font-normal" style={{ backgroundColor: "#EEFAF5" }}>수온(℃)</th>
@@ -164,8 +162,8 @@ export default function UnitDetailView({ unitId }: { unitId: string }) {
           <tbody>
             {rows.map(({ obs, pred: p }) => (
               <tr key={p.targetTime} className="text-carbon">
-                <td className="border-t border-white bg-sky/40 px-3 py-1.5">{obs ? obs.targetTime.slice(5, 16).replace("T", " ") : "-"}</td>
-                <td className="border-t border-white bg-sky/40 px-3 py-1.5 font-medium">{obs?.observedValue != null ? obs.observedValue.toFixed(2) : "-"}</td>
+                <td className="border-t border-white bg-mist px-3 py-1.5">{obs ? obs.targetTime.slice(5, 16).replace("T", " ") : "-"}</td>
+                <td className="border-t border-white bg-mist px-3 py-1.5 font-medium">{obs?.observedValue != null ? obs.observedValue.toFixed(2) : "-"}</td>
                 <td aria-hidden />
                 <td className="border-t border-white px-3 py-1.5" style={{ backgroundColor: "#EEFAF5" }}>{p.targetTime.slice(5, 16).replace("T", " ")}</td>
                 <td className={`border-t border-white px-3 py-1.5 font-medium ${predCls(p.predictedValue)}`} style={{ backgroundColor: "#EEFAF5" }}>{p.predictedValue?.toFixed(2)}</td>
