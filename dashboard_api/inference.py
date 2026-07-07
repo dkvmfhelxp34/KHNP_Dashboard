@@ -1,15 +1,15 @@
 """호기별 12-step 수온 추론 어댑터 (5호기 일반화) + 예측 DB 적재/조회.
 
+[2026-07-07] 모델 교체: 2-enc DeltaHorizonDecoderModel(2입력·delta)
+             → ST3 IntakeST3EncoderModel(3입력·residual_last).
+  - 입력: (intake 48) + (JMA 60×3) + (HYCOM 60×3), 소스별 분리 정규화.
+  - 출력: 정규화 절대 intake → pred = pred_norm*intake_std + intake_mean (prev+ 없음).
+  - 모델/통계: output/codex_khnp_model_test/st3_deploy/{unit}.pt, _workspace/p4_stats/{unit}_norm_stats.npz(ST3 포맷).
+  - 대시보드 계약(그대로 보존): latest_observation, latest_prediction 의 baseObserved·priorPredictedValue,
+    OBS_HISTORY=13(실측 6시간), pred 테이블 조회/적재 로직. → 백엔드(:8010)·프론트 무변경.
+
 그래프 정책(중요): 차트는 [관측 history] 뒤에 [+12step 미래 예측]을 이어 붙인다.
 이미 관측된 구간은 예측을 덮어 그리지 않는다(관측선/예측선을 base_time 에서 연결).
-
-데이터 경로
-- 추론: 학습과 동일하게 준비 df(for_AI_train) + 저장 model 로 12-step 예측.
-- 적재: compute_prediction() 결과를 pred_sws_temp/pred_ws_temp 에 upsert(30분마다, runner).
-- 조회: latest_prediction() 은 DB(최신 base_time) 예측을 우선 읽고, 비어 있으면 즉석 compute.
-
-모델: {unit}_20260623_fixed_valtest_h48_... (known6, history48, horizon12, target_mode=delta).
-정규화는 scaler 미저장 → train(2014~2023) 윈도우 통계 재구성(호기별 npz 캐시).
 """
 from __future__ import annotations
 
@@ -29,28 +29,31 @@ SCR_DIR = Path(__file__).resolve().parents[1]   # ...\harness\scr
 if str(SCR_DIR) not in sys.path:
     sys.path.insert(0, str(SCR_DIR))
 
-import p2_khnp_experiment as p2  # noqa: E402
 import config  # noqa: E402
+from model_st3 import IntakeST3EncoderModel  # noqa: E402
 
 try:  # psycopg2 미설치 환경에서도 대시보드는 compute fallback 으로 동작
     import db  # noqa: E402
 except Exception:  # pragma: no cover
     db = None
 
-# 경로는 config.HARNESS_DIR(frozen-aware) 기준 — exe 로 빌드돼도 실제 harness 를 가리킨다.
+# 경로는 config.HARNESS_DIR(frozen-aware) 기준.
 HARNESS_DIR = config.HARNESS_DIR
 PROJECT_ROOT = HARNESS_DIR.parent
-DATA_ROOT = PROJECT_ROOT / "data" / "for_AI_train"
 MODEL_ROOT = HARNESS_DIR / "output" / "codex_khnp_model_test"
 STATS_DIR = HARNESS_DIR / "_workspace" / "p4_stats"
 
-TARGET_MODE = "delta"
-TRAIN_YEAR_START, TRAIN_YEAR_END = 2014, 2023   # fixed_valtest_range 의 train 구간(=2014~2023)
+HISTORY_LEN = 48
+HORIZON = 12
 INTERVAL_MIN = 30
 OBS_HISTORY = 13   # 차트에 보여줄 관측 history 길이(13점 = base_time 포함 6시간; 미래도 6시간으로 대칭)
-_FOLDER_SUFFIX = "20260623_fixed_valtest_h48_20240701_20240831_20250701_20250825"
+_DEPLOY_DIR = "st3_deploy"   # 모델 폴더: output/codex_khnp_model_test/st3_deploy/{unit}.pt
 
-# unitId → (site 한글명, 모델 폴더 prefix). type 코드 == unitId.
+# ST3 입력 채널 순서(모델 학습과 동일) — 바꾸지 말 것(stats·모델·DB조립 1:1).
+JMA_COLS = ["air_temp", "wind_u", "wind_v"]                        # x_jma 채널
+HYCOM_COLS = ["water_temp_0m", "water_temp_2m", "water_temp_4m"]   # x_hycom 채널
+
+# unitId → (site 한글명, 모델 파일 stem). type 코드 == unitId.
 UNIT_MODELS: dict[str, tuple[str, str]] = {
     "sws1": ("신월성1호기", "sws1"),
     "sws2": ("신월성2호기", "sws2"),
@@ -82,108 +85,68 @@ def _hycom_table(unit: str) -> str:
     return config.TABLE_HYCOM_SWS if _sws(unit) else config.TABLE_HYCOM_WS
 
 
-# 모델 feature_col → (DB 테이블종류, DB 컬럼). live 입력 조립용.
-FEATURE_DB = {
-    "idw_water_temp_0m": ("hycom", "water_temp_0m"),
-    "idw_water_temp_2m": ("hycom", "water_temp_2m"),
-    "idw_water_temp_4m": ("hycom", "water_temp_4m"),
-    "idw_air_temp": ("jma", "air_temp"),
-    "idw_wind_u": ("jma", "wind_u"),
-    "idw_wind_v": ("jma", "wind_v"),
-}
 INTAKE_STALE_MIN = 90   # 취수구 최신 관측이 이 분(分) 이내여야 live 예측
 INTAKE_MAX_GAP_MIN = 90  # history 창 안 취수구 관측 공백이 이 분 초과면 no_data(보간으로 메우지 않음)
 PRED_STALE_MIN = 180    # 대시보드: pred 테이블 base_time 이 이 분 이내여야 'ok'
 
 
-def _model_pt(prefix: str) -> Path:
-    return MODEL_ROOT / f"{prefix}_{_FOLDER_SUFFIX}" / "models" / "delta_horizon_decoder.pt"
+def _model_pt(stem: str) -> Path:
+    return MODEL_ROOT / _DEPLOY_DIR / f"{stem}.pt"
 
 
-def _load_full_df(site: str) -> pd.DataFrame:
-    return p2.load_site_dataframe(DATA_ROOT, site, p2.KNOWN_FUTURE_COLS, max_rows=None)
-
-
-def _train_stats(unit_id: str) -> dict:
-    """정규화 통계: npz 캐시가 있으면 그대로(=서버에 큰 CSV 불필요).
-    캐시가 없을 때만 train CSV 를 읽어 재구성 후 캐시."""
+def _stats(unit_id: str) -> dict:
+    """ST3 정규화 통계 npz. 키: intake_mean/std, jma_mean/std[3], hycom_mean/std[3].
+    ⚠️ 서버엔 학습 CSV 없음 → npz 필수(재생성 불가). 없으면 FileNotFoundError(조용히 틀리는 것보다 낫다)."""
     cache = STATS_DIR / f"{unit_id}_norm_stats.npz"
-    if cache.exists():
-        z = np.load(cache, allow_pickle=True)
-        return {k: z[k] for k in z.files}
-    site = UNIT_MODELS[unit_id][0]
-    df = _load_full_df(site)
-    train = df[(df["datetime"].dt.year >= TRAIN_YEAR_START) &
-               (df["datetime"].dt.year <= TRAIN_YEAR_END)].copy()
-    raw = {"train": p2.build_windows(train, p2.HISTORY_LEN, p2.HORIZON, 4, p2.KNOWN_FUTURE_COLS)}
-    _, stats = p2.normalize_bundles(raw, TARGET_MODE)
-    cache.parent.mkdir(parents=True, exist_ok=True)
-    np.savez(cache, **{k: np.asarray(v) for k, v in stats.items()})
-    return stats
+    if not cache.exists():
+        raise FileNotFoundError(f"norm_stats 없음(필수): {cache}")
+    z = np.load(cache, allow_pickle=True)
+    return {k: np.asarray(z[k], dtype=np.float32) for k in z.files}
 
 
 @lru_cache(maxsize=8)
 def _load(unit_id: str):
-    """모델 + 정규화 통계 + feature_cols 로드. live_compute 는 CSV 불필요(stats 캐시 사용)."""
+    """ST3 모델 + 정규화 통계 로드. self-describing .pt 의 config 로 클래스 조립."""
     if unit_id not in UNIT_MODELS:
         raise KeyError(f"unknown unit: {unit_id}")
-    _site, prefix = UNIT_MODELS[unit_id]
-    pt = _model_pt(prefix)
+    _site, stem = UNIT_MODELS[unit_id]
+    pt = _model_pt(stem)
     if not pt.exists():
         raise FileNotFoundError(f"model not found: {pt}")
     ckpt = torch.load(pt, map_location="cpu", weights_only=False)
-    cfg = ckpt.get("config", {})
-    feature_cols = ckpt.get("feature_cols", p2.KNOWN_FUTURE_COLS)
-    hidden = int(cfg.get("hidden_dim", 128))
-    heads = int(cfg.get("attn_heads", 4))
-    model = p2.DeltaHorizonDecoderModel(1, len(feature_cols), hidden, p2.HORIZON, heads)
+    cfg = ckpt["config"]
+    model = IntakeST3EncoderModel(
+        jma_offsets=[tuple(o) for o in cfg["jma_offsets"]],
+        hycom_offsets=[tuple(o) for o in cfg["hycom_offsets"]],
+        d_model=cfg["d_model"], gru_layers=cfg["gru_layers"],
+        num_heads_spatial=cfg["num_heads_spatial"], dropout=cfg["dropout"],
+        hist_len=cfg["hist_len"], horizon=cfg["horizon"])
     model.load_state_dict(ckpt["state_dict"])
     model.eval()
-    stats = _train_stats(unit_id)
-    return model, stats, feature_cols
+    stats = _stats(unit_id)
+    return model, stats, ckpt
 
 
 def available_units() -> list[str]:
     """모델 .pt 가 실제로 존재하는 호기 목록."""
-    return [u for u, (_, p) in UNIT_MODELS.items() if _model_pt(p).exists()]
+    return [u for u, (_, stem) in UNIT_MODELS.items() if _model_pt(stem).exists()]
 
 
-def compute_prediction(unit_id: str) -> dict:
-    """마지막 완성 윈도우로 12-step '미래' 예측을 계산(관측은 포함 안 함).
-
-    end 를 HORIZON 만큼 뒤로 둬서 known-future 외생변수(exog)가 실제 존재하도록 한다.
-    반환: {status, baseTime, currentValue, predictions:[{targetTime, temp}, ...]}
-    """
-    model, stats, feature_cols = _load(unit_id)
-    df = _load_full_df(UNIT_MODELS[unit_id][0])  # CSV 백테스트 경로(서버 live 예측엔 미사용)
-    if len(df) < p2.HISTORY_LEN + p2.HORIZON:
-        return {"status": "insufficient_history", "unitId": unit_id, "predictions": []}
-
-    end = len(df) - p2.HORIZON - 1
-    hist = df.iloc[end - p2.HISTORY_LEN + 1: end + 1]
-    exog = df.iloc[end - p2.HISTORY_LEN + 1: end + 1 + p2.HORIZON]
-
-    intake = hist[["target"]].to_numpy(np.float32)[None]
-    exog_arr = exog[feature_cols].to_numpy(np.float32)[None]
-    prev = np.float32(hist.iloc[-1]["target"])
-
-    x_int = (intake - stats["intake_mean"]) / stats["intake_std"]
-    x_exo = (exog_arr - stats["exog_mean"]) / stats["exog_std"]
+def _forward_real(model, stats, intake_arr, jma_arr, hycom_arr) -> np.ndarray:
+    """정규화 → ST3 forward → real °C. target_mode=residual_last(모델 출력=정규화 절대 intake).
+    intake_arr (1,48,1), jma_arr (1,60,3), hycom_arr (1,60,3). 반환 (12,) °C."""
+    im = stats["intake_mean"].reshape(-1)[0]
+    istd = stats["intake_std"].reshape(-1)[0]
+    x_int = ((intake_arr - im) / istd).astype(np.float32)                          # (1,48,1)
+    x_jma = ((jma_arr - stats["jma_mean"]) / stats["jma_std"]).astype(np.float32)  # (1,60,3)
+    x_hyc = ((hycom_arr - stats["hycom_mean"]) / stats["hycom_std"]).astype(np.float32)
+    x_jma = x_jma[:, :, None, :]   # (1,60,1,3)  G=1 중심 토큰
+    x_hyc = x_hyc[:, :, None, :]
     with torch.no_grad():
-        pred_norm = model(torch.tensor(x_int), torch.tensor(x_exo)).cpu().numpy()
-    delta = pred_norm * stats["target_std"] + stats["target_mean"]
-    pred = (prev + delta).reshape(-1)
-
-    base_time = pd.Timestamp(hist.iloc[-1]["datetime"])
-    preds = []
-    for i in range(p2.HORIZON):
-        tt = base_time + pd.Timedelta(minutes=INTERVAL_MIN * (i + 1))
-        preds.append({"targetTime": tt.isoformat(), "temp": round(float(pred[i]), 3)})
-    return {
-        "status": "ok", "unitId": unit_id, "source": "model",
-        "baseTime": base_time.isoformat(), "currentValue": round(float(prev), 3),
-        "predictions": preds,
-    }
+        pred_norm = model(x_intake=torch.tensor(x_int),
+                          x_jma=torch.tensor(x_jma),
+                          x_hycom=torch.tensor(x_hyc)).cpu().numpy()   # (1,12,1) 정규화 절대
+    return pred_norm.reshape(-1) * istd + im   # 역정규화(절대), prev+ 없음
 
 
 def _max_dt(table: str, unit_id: str):
@@ -217,8 +180,7 @@ def latest_observation(unit_id: str) -> dict:
 
 
 def _intake_max_gap_min(unit_id: str, start, end) -> float | None:
-    """history 창 안 취수구 '실관측' 사이 최대 공백(분). 자료 전무면 창 전체를 공백으로 본다.
-    선형보간으로 메우기 전에, 실제 관측이 끊긴 구간이 큰지 판정하는 용도."""
+    """history 창 안 취수구 '실관측' 사이 최대 공백(분). 자료 전무면 창 전체를 공백으로 본다."""
     if db is None:
         return None
     rows = db.fetch_all(
@@ -256,7 +218,7 @@ def _db_series_30min(table: str, unit_id: str, cols: list[str], start, end, buff
 
 
 def live_compute(unit_id: str) -> dict:
-    """local DB(취수구 실시간 + JMA/HYCOM 30분 예보)로 12-step 미래 예측.
+    """local DB(취수구 실시간 + JMA/HYCOM 30분 예보)로 12-step 미래 예측(ST3, 3입력).
     입력 윈도우를 못 만들면 status='no_data' + 사유(임의/과거 값으로 대체 금지)."""
     if unit_id not in UNIT_MODELS:
         return {"status": "unknown_unit", "unitId": unit_id, "predictions": []}
@@ -264,11 +226,11 @@ def live_compute(unit_id: str) -> dict:
         return {"status": "no_data", "unitId": unit_id, "reason": "DB 미연결",
                 "missing": ["DB"], "predictions": []}
 
-    model, stats, feature_cols = _load(unit_id)
+    model, stats, _ = _load(unit_id)
     now = datetime.now(KST).replace(tzinfo=None)
     base_time = pd.Timestamp(now).floor(f"{INTERVAL_MIN}min")
-    hist_start = base_time - pd.Timedelta(minutes=INTERVAL_MIN * (p2.HISTORY_LEN - 1))
-    exog_end = base_time + pd.Timedelta(minutes=INTERVAL_MIN * p2.HORIZON)
+    hist_start = base_time - pd.Timedelta(minutes=INTERVAL_MIN * (HISTORY_LEN - 1))
+    exog_end = base_time + pd.Timedelta(minutes=INTERVAL_MIN * HORIZON)
 
     missing: list[str] = []
     it_max = _max_dt(_intake_table(unit_id), unit_id)
@@ -280,10 +242,8 @@ def live_compute(unit_id: str) -> dict:
         missing.append(f"취수구 관측 공백({int(gap)}분)" if gap else "취수구 관측 공백")
 
     intake = _db_series_30min(_intake_table(unit_id), unit_id, ["temp"], hist_start, base_time)
-    hycom = _db_series_30min(_hycom_table(unit_id), unit_id,
-                             ["water_temp_0m", "water_temp_2m", "water_temp_4m"], hist_start, exog_end)
-    jma = _db_series_30min(_jma_table(unit_id), unit_id,
-                           ["air_temp", "wind_u", "wind_v"], hist_start, exog_end)
+    hycom = _db_series_30min(_hycom_table(unit_id), unit_id, HYCOM_COLS, hist_start, exog_end)
+    jma = _db_series_30min(_jma_table(unit_id), unit_id, JMA_COLS, hist_start, exog_end)
 
     if intake is None or intake["temp"].isna().any():
         missing.append("취수구 실시간")
@@ -297,29 +257,24 @@ def live_compute(unit_id: str) -> dict:
                 "reason": "실시간 예측 입력자료 미수신/불완전: " + ", ".join(miss),
                 "missing": miss, "currentValue": None, "predictions": []}
 
-    exog_cols = []
-    for fc in feature_cols:
-        kind, col = FEATURE_DB[fc]
-        src = hycom if kind == "hycom" else jma
-        exog_cols.append(src[col].to_numpy(np.float32))
-    exog_arr = np.stack(exog_cols, axis=-1)[None]            # (1, HIST+HORIZON, 6)
-    intake_arr = intake["temp"].to_numpy(np.float32)[None, :, None]  # (1, HIST, 1)
-    prev = np.float32(intake["temp"].iloc[-1])
-
-    x_int = (intake_arr - stats["intake_mean"]) / stats["intake_std"]
-    x_exo = (exog_arr - stats["exog_mean"]) / stats["exog_std"]
-    with torch.no_grad():
-        pred_norm = model(torch.tensor(x_int), torch.tensor(x_exo)).cpu().numpy()
-    delta = pred_norm * stats["target_std"] + stats["target_mean"]
-    pred = (prev + delta).reshape(-1)
+    intake_arr = intake["temp"].to_numpy(np.float32)[None, :, None]                     # (1,48,1)
+    jma_arr = np.stack([jma[c].to_numpy(np.float32) for c in JMA_COLS], axis=-1)[None]  # (1,60,3)
+    hycom_arr = np.stack([hycom[c].to_numpy(np.float32) for c in HYCOM_COLS], axis=-1)[None]
+    prev = float(intake["temp"].iloc[-1])
+    pred = _forward_real(model, stats, intake_arr, jma_arr, hycom_arr)
 
     preds = []
-    for i in range(p2.HORIZON):
+    for i in range(HORIZON):
         tt = base_time + pd.Timedelta(minutes=INTERVAL_MIN * (i + 1))
         preds.append({"targetTime": tt.isoformat(), "temp": round(float(pred[i]), 3)})
     return {"status": "ok", "unitId": unit_id, "source": "live",
-            "baseTime": base_time.isoformat(), "currentValue": round(float(prev), 3),
+            "baseTime": base_time.isoformat(), "currentValue": round(prev, 3),
             "predictions": preds}
+
+
+def compute_prediction(unit_id: str) -> dict:
+    """live_compute 별칭(서버 live 경로). DB 미연결이면 no_data."""
+    return live_compute(unit_id)
 
 
 def upsert_prediction(unit_id: str, result: dict | None = None) -> int:
